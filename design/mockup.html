@@ -1,0 +1,157 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 960px; height: 540px; overflow: hidden; }
+  body {
+    font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; position: relative;
+    background:#07070A; --x:
+      radial-gradient(480px at 15% 5%, rgba(10,132,255,.20), transparent 70%),
+      radial-gradient(520px at 95% 90%, rgba(191,90,242,.16), transparent 70%),
+      radial-gradient(360px at 60% 45%, rgba(100,210,255,.08), transparent 70%),
+      linear-gradient(180deg, #101016, #07070A);
+    padding: 28px 36px 12px;
+  }
+  .head { display: flex; align-items: center; margin: 0 12px; }
+  .card { height: 62px; border-radius: 18px; padding: 0 16px; display: flex; flex-direction: column; justify-content: center;
+          background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.12); transition: none; }
+  .card.focus { background: rgba(255,255,255,.95); border-color: transparent; transform: scale(1.05);
+                box-shadow: 0 12px 30px rgba(0,0,0,.45); color: #1C1C1E; }
+  .card .t { display: flex; align-items: center; font-size: 13px; font-weight: 500; }
+  .card .t .name { flex: 1; }
+  .card .line { font-size: 11px; color: rgba(235,235,245,.6); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card.focus .line { color: #636366; }
+  .ftp { width: 280px; margin-right: 14px; }
+  .ram { width: 220px; }
+  .pill { font-size: 10px; font-weight: 500; padding: 1px 8px; border-radius: 20px; }
+  .pill.on { background: rgba(48,209,88,.22); color: #30D158; }
+  .pill.off { background: rgba(128,128,128,.16); color: rgba(255,255,255,.7); }
+  .ico { width: 15px; height: 15px; margin-right: 6px; fill: currentColor; }
+  .pct { color: #0A84FF; font-weight: 500; }
+  .bar { height: 5px; border-radius: 3px; background: rgba(128,128,128,.2); margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 54%; background: #0A84FF; border-radius: 3px; }
+  .ram .line { margin-top: 5px; }
+  .spacer { flex: 1; }
+  .clock { text-align: right; }
+  .clock .time { font-size: 34px; font-weight: 400; letter-spacing: -.01em; line-height: 1; }
+  .clock .date { font-size: 12px; font-weight: 500; color: rgba(235,235,245,.55); margin-top: 5px; }
+  h2 { font-size: 13px; font-weight: 500; color: rgba(235,235,245,.55); margin: 10px 0 0 12px; }
+  h2.first { margin-top: 16px; }
+  .row { display: flex; padding: 8px 48px 0 12px; }
+  .tile { width: 140px; flex: none; margin-right: 18px; display: flex; flex-direction: column; align-items: center; }
+  .art { width: 140px; height: 84px; border-radius: 14px; position: relative; overflow: hidden;
+         display: flex; flex-direction: column; align-items: center; justify-content: center;
+         box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+  .tile.focus .art { transform: scale(1.12); box-shadow: 0 18px 34px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.35); }
+  .tile.focus .art::after { content: ""; position: absolute; inset: 0;
+         background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.04) 50%, transparent); }
+  .lbl { font-size: 11px; font-weight: 500; margin-top: 9px; height: 14px; visibility: hidden; }
+  .tile.focus .lbl { visibility: visible; }
+  .banner { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+  .icon svg { width: 34px; height: 34px; fill: #fff; }
+  .icon span { font-size: 11px; font-weight: 500; margin-top: 6px; color: rgba(255,255,255,.9); }
+  .appicon { width: 34px; height: 34px; border-radius: 9px; }
+  .b1 { background: linear-gradient(135deg,#2d2366,#7b5ce0); }
+  .b2 { background: linear-gradient(135deg,#3a0d10,#c8282e); }
+  .b3 { background: linear-gradient(135deg,#0d1140,#3346c9); }
+  .slate { background: linear-gradient(180deg,#2a3654,#1E2A4A); }
+  .gray { background: linear-gradient(180deg,#363a48,#262A36); }
+
+  .wp, .scrim { position: absolute; inset: 0; z-index: -1; background-size: cover; background-position: center; }
+  .scrim { background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.25) 50%, rgba(0,0,0,.55)); }
+  .ftp { width: 268px; } .ram { width: 212px; }
+  .head { margin: 0 4px 0 12px; }
+  .clockcard { display: flex; align-items: center; padding: 6px 12px; border-radius: 18px; }
+  .clockcard.focus { background: rgba(255,255,255,.95); color: #1C1C1E; transform: scale(1.05); box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+  .clockcard.focus .small, .clockcard.focus .tiny { color: #636366; text-shadow: none; }
+  .clockcard.focus .big { text-shadow: none; }
+  .clockcard.focus svg path { fill: #1C1C1E; stroke: #1C1C1E; }
+  .big { font-size: 34px; font-weight: 400; letter-spacing: -.01em; line-height: 1; text-shadow: 0 0 8px rgba(0,0,0,.5); }
+  .small { font-size: 12px; font-weight: 500; color: rgba(235,235,245,.6); margin-top: 4px; text-shadow: 0 0 6px rgba(0,0,0,.5); white-space: nowrap; max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+  .tiny { font-size: 10px; font-weight: 500; color: rgba(235,235,245,.6); line-height: 1.3; }
+  .wxrow { display: flex; align-items: center; } .wxrow svg { margin-right: 6px; }
+  .hl { margin-left: 8px; }
+  .divider { width: 1px; height: 40px; background: rgba(255,255,255,.2); margin: 0 18px; }
+  .clockcol { text-align: right; }
+  h2 { text-shadow: 0 0 6px rgba(0,0,0,.6); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 76px 48px 28px;
+           background: linear-gradient(180deg, transparent, rgba(0,0,0,.95) 64px, rgba(0,0,0,.95)); }
+  .thumbs { overflow: hidden; padding-bottom: 6px; }
+  .sheet .title { font-size: 22px; font-weight: 500; }
+  .sheet .hint { font-size: 12px; color: rgba(235,235,245,.6); margin-top: 4px; }
+  .thumbs { display: flex; padding: 20px 0 0 8px; }
+  .th { width: 176px; margin-right: 18px; flex: none; text-align: center; }
+  .th .img { height: 99px; border-radius: 14px; background-size: cover; background-position: center; position: relative; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+  .th.focus .img { transform: scale(1.1); box-shadow: 0 18px 34px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.35); }
+  .th .lbl2 { font-size: 11px; font-weight: 500; color: rgba(255,255,255,.7); margin-top: 12px; }
+  .th.focus .lbl2 { color: #fff; margin-top: 16px; }
+  .check { position: absolute; top: 7px; right: 7px; width: 20px; height: 20px; }
+</style></head>
+<body>
+<div class="wp" id="wp"></div><div class="scrim" id="scrim"></div>
+
+<div class="head">
+  <div class="card ftp" id="ftp">
+    <div class="t"><svg class="ico" viewBox="0 0 24 24"><path d="M7,10l-4,4 4,4v-3h7v-2H7zM21,10l-4,-4v3h-7v2h7v3z"/></svg>
+      <span class="name">File Transfer</span><span class="pill on">On</span></div>
+    <div class="line">192.168.1.23:2121 &nbsp;·&nbsp; tv / 482913</div>
+  </div>
+  <div class="card ram" id="ram">
+    <div class="t"><span class="name">Memory</span><span class="pct">54%</span></div>
+    <div class="bar"><i></i></div>
+    <div class="line">940 MB available · Select to clean</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="clockcard" id="clock">
+    <div class="wx">
+      <div class="wxrow"><svg width="30" height="30" viewBox="0 0 24 24"><g transform="translate(-3.2,-3.4) translate(12,12) scale(0.62) translate(-12,-12)"><path d="M12,2.4v2.2 M12,19.4v2.2 M2.4,12h2.2 M19.4,12h2.2 M5.2,5.2l1.55,1.55 M17.25,17.25l1.55,1.55 M5.2,18.8l1.55,-1.55 M17.25,6.75l1.55,-1.55" fill="none" stroke="#FFD60A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g><g transform="translate(-3.2,-3.4) translate(12,12) scale(0.62) translate(-12,-12)"><path d="M12,7.5 a4.5,4.5 0 1 1 0,9 a4.5,4.5 0 1 1 0,-9 z" fill="#FFD60A" stroke="none" stroke-width="0" stroke-linecap="round" stroke-linejoin="round"/></g><g transform="translate(1.2,1.4) translate(12,12) scale(0.9) translate(-12,-12)"><path d="M7,19 h10.5 a4,4 0 0 0 0.6,-7.96 A6,6 0 0 0 6.6,10.04 A4.5,4.5 0 0 0 7,19 z" fill="#FFFFFF" stroke="none" stroke-width="0" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="big">14°</span><div class="hl"><div class="tiny">H 17°</div><div class="tiny">L 6°</div></div></div>
+      <div class="small">Partly cloudy &nbsp;·&nbsp; Sarajevo</div>
+    </div>
+    <div class="divider"></div>
+    <div class="clockcol"><div class="big">10:26</div><div class="small">Sun 25 Oct</div></div>
+  </div>
+</div>
+
+<h2 class="first">Favourites</h2>
+<div class="row">
+  <div class="tile" id="t0"><div class="art b1 banner">Stremio</div><div class="lbl">Stremio</div></div>
+  <div class="tile"><div class="art b2 banner">SmartTube</div><div class="lbl">SmartTube</div></div>
+  <div class="tile"><div class="art b3 banner">HBO Max</div><div class="lbl">HBO Max</div></div>
+  <div class="tile"><div class="art icon" style="background:linear-gradient(180deg,#24485a,#1b3644)"><div class="appicon" style="background:#2a8bb0"></div><span>Kodi</span></div><div class="lbl">Kodi</div></div>
+</div>
+
+<h2>Inputs</h2>
+<div class="row" id="inputs"></div>
+
+<h2>All Apps</h2>
+<div class="row" id="apps"></div>
+
+<div class="sheet" id="sheet" style="display:none"><div class="title">Wallpaper</div><div class="hint">Add your own photos: send them to the Wallpapers folder with File Transfer</div><div class="thumbs"><div class="th"><div class="img" style="background:radial-gradient(circle 88px at 15.0% 5.0%, rgba(10,132,255,0.20), transparent), radial-gradient(circle 95px at 95.0% 90.0%, rgba(191,90,242,0.16), transparent), radial-gradient(circle 66px at 60.0% 45.0%, rgba(100,210,255,0.08), transparent), linear-gradient(180deg, #101016, #07070A)"><svg class="check" viewBox="0 0 24 24"><path fill="#0A84FF" d="M12,2a10,10 0 1 1 0,20a10,10 0 1 1 0,-20z"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5,12.4l3,3l6,-6.4"/></svg></div><div class="lbl2">Midnight</div></div><div class="th"><div class="img" style="background:radial-gradient(circle 95px at 20.0% 0.0%, rgba(48,209,88,0.20), transparent), radial-gradient(circle 88px at 75.0% 15.0%, rgba(100,210,255,0.16), transparent), radial-gradient(circle 103px at 90.0% 100.0%, rgba(94,92,230,0.12), transparent), linear-gradient(180deg, #06100F, #040708)"></div><div class="lbl2">Aurora</div></div><div class="th"><div class="img" style="background:radial-gradient(circle 95px at 85.0% 5.0%, rgba(255,159,10,0.22), transparent), radial-gradient(circle 103px at 15.0% 90.0%, rgba(255,55,95,0.18), transparent), radial-gradient(circle 70px at 50.0% 40.0%, rgba(255,100,130,0.08), transparent), linear-gradient(180deg, #150A0C, #080506)"></div><div class="lbl2">Sunset</div></div><div class="th"><div class="img" style="background:radial-gradient(circle 99px at 50.0% 0.0%, rgba(100,210,255,0.20), transparent), radial-gradient(circle 95px at 5.0% 95.0%, rgba(10,132,255,0.16), transparent), radial-gradient(circle 73px at 95.0% 60.0%, rgba(64,200,224,0.10), transparent), linear-gradient(180deg, #051018, #03070B)"></div><div class="lbl2">Ocean</div></div><div class="th"><div class="img" style="background:radial-gradient(circle 110px at 50.0% 0.0%, rgba(255,255,255,0.08), transparent), linear-gradient(180deg, #18181B, #0B0B0D)"></div><div class="lbl2">Graphite</div></div><div class="th focus"><div class="img" style="background:url(mountains.jpg) center/cover"></div><div class="lbl2">Mountains</div></div></div></div>
+<script>
+  const hdmi = '<svg viewBox="0 0 24 24"><path d="M2,8h20v5l-3,3H5l-3,-3zM4,10v2.2L5.8,14h12.4L20,12.2V10z"/><path d="M6,11h1.2v1.2H6zM8.4,11h1.2v1.2H8.4zM10.8,11h1.2v1.2h-1.2zM13.2,11h1.2v1.2h-1.2zM15.6,11h1.2v1.2h-1.2z"/></svg>';
+  const tv = '<svg viewBox="0 0 24 24"><path d="M21,6h-7.59l3.29,-3.29L16,2l-4,4 -4,-4 -0.71,0.71L10.59,6H3c-1.1,0 -2,0.89 -2,2v12c0,1.1 0.9,2 2,2h18c1.1,0 2,-0.9 2,-2V8c0,-1.11 -0.9,-2 -2,-2zM21,20H3V8h18v12z"/></svg>';
+  const gear = '<svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"/></svg>';
+  const inputs = document.getElementById('inputs');
+  const pc='<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,3.5h18a1.5,1.5 0 0 1 1.5,1.5v10.5a1.5,1.5 0 0 1 -1.5,1.5H3a1.5,1.5 0 0 1 -1.5,-1.5V5a1.5,1.5 0 0 1 1.5,-1.5z M3.4,5.4v9.7h17.2V5.4z M10.6,17h2.8v2.4h-2.8z M7.5,19.2h9a0.8,0.8 0 0 1 0,1.6h-9a0.8,0.8 0 0 1 0,-1.6z"/></svg>', box='<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.5,9h19a1.5,1.5 0 0 1 1.5,1.5v5a1.5,1.5 0 0 1 -1.5,1.5h-19a1.5,1.5 0 0 1 -1.5,-1.5v-5a1.5,1.5 0 0 1 1.5,-1.5z M4.2,13a1,1 0 1 0 2,0a1,1 0 1 0 -2,0z M13,12.2h6.4v1.6H13z M4,17h2.5v1.6H4z M17.5,17h2.5v1.6h-2.5z"/></svg>', pad='<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M7,7h10c2.8,0 4.6,2.3 5,5.2l0.8,5c0.3,2 -1.9,3.2 -3.4,1.9L16.5,16.5h-9L4.6,19.1C3.1,20.4 0.9,19.2 1.2,17.2l0.8,-5C2.4,9.3 4.2,7 7,7z M6.4,9.6h1.6v1.6h1.6v1.6H8v1.6H6.4v-1.6H4.8v-1.6h1.6z M15,10.8a1,1 0 1 0 2,0a1,1 0 1 0 -2,0z M17.4,13.2a1,1 0 1 0 2,0a1,1 0 1 0 -2,0z"/></svg>';
+  [['PC',pc,'slate'],['STB',box,'slate'],['Xbox 360',pad,'slate','xb'],['Wii',pad,'slate'],['Live TV',tv,'slate'],['Settings',gear,'gray']]
+    .forEach(([n,i,c,id]) => inputs.insertAdjacentHTML('beforeend',
+      `<div class="tile" ${id?`id="${id}"`:''}><div class="art icon ${c}">${i}<span>${n}</span></div><div class="lbl" style="visibility:hidden">${n}</div></div>`));
+  // Generic placeholder apps (icon-only apps get a card tinted from their icon colour)
+  const apps = document.getElementById('apps');
+  [['Files','#3b6fd8'],['Kodi','#2a8bb0'],['VLC','#e8822a'],['Music','#d8434f'],['Photos','#3aa45c'],['Weather','#5a8de0']]
+    .forEach(([n,col]) => {
+      apps.insertAdjacentHTML('beforeend',
+      `<div class="tile"><div class="art icon" style="background:linear-gradient(180deg, color-mix(in srgb, ${col} 34%, #1a1a20), color-mix(in srgb, ${col} 24%, #121216))">
+        <div class="appicon" style="background:${col}"></div><span>${n}</span></div><div class="lbl">${n}</div></div>`);
+    });
+  const presets = {"Midnight": "radial-gradient(circle 480px at 15.0% 5.0%, rgba(10,132,255,0.20), transparent), radial-gradient(circle 520px at 95.0% 90.0%, rgba(191,90,242,0.16), transparent), radial-gradient(circle 360px at 60.0% 45.0%, rgba(100,210,255,0.08), transparent), linear-gradient(180deg, #101016, #07070A)", "Aurora": "radial-gradient(circle 520px at 20.0% 0.0%, rgba(48,209,88,0.20), transparent), radial-gradient(circle 480px at 75.0% 15.0%, rgba(100,210,255,0.16), transparent), radial-gradient(circle 560px at 90.0% 100.0%, rgba(94,92,230,0.12), transparent), linear-gradient(180deg, #06100F, #040708)", "Sunset": "radial-gradient(circle 520px at 85.0% 5.0%, rgba(255,159,10,0.22), transparent), radial-gradient(circle 560px at 15.0% 90.0%, rgba(255,55,95,0.18), transparent), radial-gradient(circle 380px at 50.0% 40.0%, rgba(255,100,130,0.08), transparent), linear-gradient(180deg, #150A0C, #080506)", "Ocean": "radial-gradient(circle 540px at 50.0% 0.0%, rgba(100,210,255,0.20), transparent), radial-gradient(circle 520px at 5.0% 95.0%, rgba(10,132,255,0.16), transparent), radial-gradient(circle 400px at 95.0% 60.0%, rgba(64,200,224,0.10), transparent), linear-gradient(180deg, #051018, #03070B)", "Graphite": "radial-gradient(circle 600px at 50.0% 0.0%, rgba(255,255,255,0.08), transparent), linear-gradient(180deg, #18181B, #0B0B0D)"};
+  const mode = location.hash.slice(1) || 'photo';
+  const wp = document.getElementById('wp'), scrim = document.getElementById('scrim');
+  if (mode === 'photo' || mode === 'picker') { wp.style.background = 'url(mountains.jpg) center/cover'; }
+  else { wp.style.background = presets['Aurora']; scrim.style.display = 'none'; }
+  if (mode === 'photo') document.getElementById('t0').classList.add('focus');
+  if (mode === 'clock') document.getElementById('clock').classList.add('focus');
+  if (mode === 'inputs') { wp.style.background = presets['Midnight']; scrim.style.display='none'; document.getElementById('xb').classList.add('focus'); }
+  if (mode === 'picker') { document.getElementById('sheet').style.display = 'block'; const t=document.querySelector('.thumbs'); t.scrollLeft = t.scrollWidth; }
+</script>
+</body></html>

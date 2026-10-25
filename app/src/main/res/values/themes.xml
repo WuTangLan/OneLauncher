@@ -1,0 +1,8 @@
+<resources>
+    <style name="LauncherTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@drawable/wallpaper</item>
+        <item name="android:windowShowWallpaper">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:colorAccent">#FF5EC8FF</item>
+    </style>
+</resources>

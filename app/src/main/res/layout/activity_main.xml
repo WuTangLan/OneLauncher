@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sized for a 1080p TV (960 x 540 dp) so everything fits on one screen inside the overscan-safe area. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Wallpaper: two layers so a new one can fade in over the old -->
+    <ImageView
+        android:id="@+id/wallpaper_back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/wallpaper_front"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <!-- Only shown over photos, to keep text readable -->
+    <View
+        android:id="@+id/wallpaper_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/wallpaper_scrim"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/root_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            android:paddingStart="36dp"
+            android:paddingTop="28dp"
+            android:paddingEnd="36dp"
+            android:paddingBottom="12dp">
+
+            <!-- Header: glass widgets on the left, weather + clock on the right -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="4dp"
+                android:clipChildren="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- File transfer: OK = on/off, hold OK = new password -->
+                <LinearLayout
+                    android:id="@+id/ftp_card"
+                    style="@style/Card"
+                    android:layout_width="268dp"
+                    android:layout_marginEnd="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/ftp_icon"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_marginEnd="6dp"
+                            android:src="@drawable/ic_ftp" />
+
+                        <TextView style="@style/CardTitle" android:text="File Transfer" />
+
+                        <TextView
+                            android:id="@+id/ftp_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/pill_off"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingStart="8dp"
+                            android:paddingTop="1dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="1dp"
+                            android:text="Off"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <TextView android:id="@+id/ftp_line1" style="@style/CardLine" />
+                </LinearLayout>
+
+                <!-- Memory: OK = clean -->
+                <LinearLayout
+                    android:id="@+id/ram_card"
+                    style="@style/Card"
+                    android:layout_width="212dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView style="@style/CardTitle" android:text="Memory" />
+
+                        <TextView
+                            android:id="@+id/ram_percent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#FF0A84FF"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/ram_bar"
+                        style="@android:style/Widget.ProgressBar.Horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="5dp"
+                        android:layout_marginTop="6dp"
+                        android:max="100"
+                        android:progressDrawable="@drawable/ram_bar" />
+
+                    <TextView android:id="@+id/ram_detail" style="@style/CardLine" android:layout_marginTop="5dp" />
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Weather + clock: select to open Customize -->
+                <LinearLayout
+                    android:id="@+id/clock_card"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/clock_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp">
+
+                    <LinearLayout
+                        android:id="@+id/weather_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:id="@+id/weather_icon"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                android:id="@+id/weather_temp"
+                                style="@style/HeaderBig" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:orientation="vertical">
+
+                                <TextView android:id="@+id/weather_high" style="@style/HeaderTiny" />
+                                <TextView android:id="@+id/weather_low" style="@style/HeaderTiny" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/weather_line"
+                            style="@style/HeaderSmall"
+                            android:maxWidth="170dp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/weather_divider"
+                        android:layout_width="1dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginEnd="18dp"
+                        android:background="#33FFFFFF"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView android:id="@+id/clock" style="@style/HeaderBig" />
+                        <TextView android:id="@+id/date" style="@style/HeaderSmall" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView style="@style/SectionTitle" android:layout_marginTop="16dp" android:text="Favourites" />
+            <HorizontalScrollView style="@style/RowScroll">
+                <LinearLayout android:id="@+id/row_favourites" style="@style/Row" />
+            </HorizontalScrollView>
+
+            <TextView style="@style/SectionTitle" android:text="Inputs" />
+            <HorizontalScrollView style="@style/RowScroll">
+                <LinearLayout android:id="@+id/row_inputs" style="@style/Row" />
+            </HorizontalScrollView>
+
+            <TextView style="@style/SectionTitle" android:text="All Apps" />
+            <HorizontalScrollView style="@style/RowScroll">
+                <LinearLayout android:id="@+id/row_apps" style="@style/Row" />
+            </HorizontalScrollView>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Near-black with soft, out-of-focus colour light, in the spirit of tvOS wallpapers -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient android:type="linear" android:angle="270"
+                android:startColor="#FF101016" android:endColor="#FF07070A" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:type="radial" android:gradientRadius="480dp"
+                android:centerX="0.15" android:centerY="0.05"
+                android:startColor="#330A84FF" android:endColor="#000A84FF" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:type="radial" android:gradientRadius="520dp"
+                android:centerX="0.95" android:centerY="0.9"
+                android:startColor="#29BF5AF2" android:endColor="#00BF5AF2" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:type="radial" android:gradientRadius="360dp"
+                android:centerX="0.6" android:centerY="0.45"
+                android:startColor="#1464D2FF" android:endColor="#0064D2FF" />
+        </shape>
+    </item>
+</layer-list>

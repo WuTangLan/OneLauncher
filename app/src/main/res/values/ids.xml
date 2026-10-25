@@ -1,0 +1,4 @@
+<resources>
+    <item name="rest_color" type="id" />
+    <item name="rest_shadow" type="id" />
+</resources>

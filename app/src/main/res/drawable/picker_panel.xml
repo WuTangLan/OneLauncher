@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Short fade at the top, then a solid dark panel so the text never sits on busy tiles -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:height="64dp" android:gravity="top">
+        <shape>
+            <gradient android:angle="270" android:type="linear"
+                android:startColor="#00000000" android:endColor="#F2000000" />
+        </shape>
+    </item>
+    <item android:top="64dp">
+        <shape>
+            <solid android:color="#F2000000" />
+        </shape>
+    </item>
+</layer-list>
