@@ -1,6 +1,7 @@
 package com.marcus.onelauncher
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.view.inputmethod.EditorInfo
@@ -8,7 +9,24 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import kotlin.concurrent.thread
 
-/** The Customize menu: wallpaper, rotation, weather location and units, TV settings. */
+/** Which parts of the home screen are shown. Stored in the `launcher` prefs. */
+object LauncherSettings {
+
+    private const val PREFS = "launcher"
+
+    private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    fun showAllApps(ctx: Context) = prefs(ctx).getBoolean("show_all_apps", true)
+    fun setShowAllApps(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("show_all_apps", on).apply()
+
+    fun showNowPlaying(ctx: Context) = prefs(ctx).getBoolean("show_now_playing", true)
+    fun setShowNowPlaying(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("show_now_playing", on).apply()
+
+    fun showGoogleHome(ctx: Context) = prefs(ctx).getBoolean("show_google_home", true)
+    fun setShowGoogleHome(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("show_google_home", on).apply()
+}
+
+/** The Launcher options menu: wallpaper, rows, weather location and units, TV settings. */
 class Customize(private val activity: MainActivity) {
 
     private val theme = android.R.style.Theme_DeviceDefault_Dialog_Alert
@@ -20,10 +38,37 @@ class Customize(private val activity: MainActivity) {
         val place = if (WeatherRepository.manualPlace(ctx)) WeatherRepository.placeName(ctx) ?: "City"
         else "Automatic" + (WeatherRepository.placeName(ctx)?.takeIf { it.isNotBlank() }?.let { " ($it)" } ?: "")
         val unit = if (WeatherRepository.fahrenheit(ctx)) "°F" else "°C"
+        val allApps = LauncherSettings.showAllApps(ctx)
+        val home = LauncherSettings.showGoogleHome(ctx)
+        val playing = LauncherSettings.showNowPlaying(ctx)
+        val playingState = when {
+            !playing -> "Off"
+            !NowPlaying.hasAccess(ctx) -> "Needs permission"
+            else -> "On"
+        }
 
         val actions = listOf<Pair<String, () -> Unit>>(
             "Wallpaper  ·  ${Wallpapers.current(ctx).label}" to { WallpaperPicker(activity).show() },
+            "Get more wallpapers" to { WallpaperGallery(activity).show() },
             "Change wallpaper automatically  ·  $rotation" to { chooseRotation() },
+            "Show All Apps  ·  ${if (allApps) "On" else "Off"}" to {
+                LauncherSettings.setShowAllApps(ctx, !allApps)
+                activity.loadRows()
+                show()
+            },
+            "Show Google Home  ·  ${if (home) "On" else "Off"}" to {
+                LauncherSettings.setShowGoogleHome(ctx, !home)
+                activity.loadRows()
+                show()
+            },
+            "Show what's playing  ·  $playingState" to {
+                if (playing && !NowPlaying.hasAccess(ctx)) askMediaAccess()
+                else {
+                    LauncherSettings.setShowNowPlaying(ctx, !playing)
+                    activity.onNowPlayingSettingChanged()
+                    show()
+                }
+            },
             "Edit favourites" to { editFavourites() },
             "Rename inputs" to { renameInputs() },
             "Show weather  ·  ${if (weatherOn) "On" else "Off"}" to {
@@ -42,9 +87,26 @@ class Customize(private val activity: MainActivity) {
             },
         )
         AlertDialog.Builder(ctx, theme)
-            .setTitle("Customize")
+            .setTitle("Launcher options")
             .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
             .show()
+    }
+
+    /**
+     * Reading other apps' media needs notification access. Google TV often hides that screen,
+     * so fall back to the one-line adb command.
+     */
+    private fun askMediaAccess() {
+        try {
+            activity.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } catch (_: Exception) {
+            AlertDialog.Builder(activity, theme)
+                .setTitle("Allow One Launcher to see what's playing")
+                .setMessage("This TV has no setting for it. From a computer, run:\n\n" +
+                    "adb shell cmd notification allow_listener com.marcus.onelauncher/.MediaListener")
+                .setPositiveButton("OK", null)
+                .show()
+        }
     }
 
     /** Checklist of every app; ticked ones are in the Favourites row. */

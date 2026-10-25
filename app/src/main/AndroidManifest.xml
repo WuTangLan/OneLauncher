@@ -57,6 +57,18 @@
                 android:value="Local network file transfer (FTP server)" />
         </service>
 
+        <!-- Only so we may read media sessions (what's playing); it ignores notifications.
+             Grant: adb shell cmd notification allow_listener com.marcus.onelauncher/.MediaListener -->
+        <service
+            android:name=".MediaListener"
+            android:exported="true"
+            android:label="One Launcher now playing"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".InstallReceiver"
             android:exported="false" />

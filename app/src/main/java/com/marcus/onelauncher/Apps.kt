@@ -30,6 +30,8 @@ data class Tile(
     val defaultLabel: String? = null,
     /** Special tile that opens the favourites editor when the row is empty. */
     val isAddFavourites: Boolean = false,
+    /** Special tile that opens the Launcher options menu. */
+    val opensOptions: Boolean = false,
 )
 
 /**
@@ -164,6 +166,7 @@ object AppRepository {
             tiles += Tile("Live TV", liveTv, iconRes = R.drawable.ic_tv, tint = inputTint)
         }
 
+        tiles += Tile("Launcher options", null, iconRes = R.drawable.ic_tune, tint = 0xFF262A36.toInt(), opensOptions = true)
         tiles += Tile(
             "Settings",
             Intent(android.provider.Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -172,6 +175,14 @@ object AppRepository {
         )
         return tiles
     }
+
+    /**
+     * Google TV's own Home panel (lights, cameras, thermostats), opened by the widget under the
+     * weather. It lives in the screensaver package, so it works with the stock launcher disabled.
+     */
+    fun googleHomeIntent(): Intent =
+        Intent("com.google.android.libraries.tv.smarthome.intent.action.OPEN_SMART_HOME")
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     /** A dark, slightly muted version of the icon's average colour, used behind icon-only tiles. */
     private fun cardTintFor(icon: Drawable): Int = try {

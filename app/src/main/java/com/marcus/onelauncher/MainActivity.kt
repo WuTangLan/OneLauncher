@@ -42,6 +42,15 @@ class MainActivity : Activity() {
     private lateinit var ftpStatus: TextView
     private lateinit var ftpLine1: TextView
     private lateinit var clockCard: View
+    private lateinit var homeButton: View
+    private lateinit var npCard: View
+    private lateinit var npArt: ImageView
+    private lateinit var npTitle: TextView
+    private lateinit var npArtist: TextView
+    private lateinit var npState: ImageView
+    private lateinit var nowPlaying: NowPlaying
+    /** Something is playing: the header cards shrink to make room for the now-playing card. */
+    private var compact = false
     private lateinit var weatherBox: View
     private lateinit var weatherDivider: View
     private lateinit var weatherIcon: ImageView
@@ -66,6 +75,8 @@ class MainActivity : Activity() {
     var pickerOpen = false
     /** Row + position to focus once the rows reload (after moving or renaming a tile). */
     private var focusAfterLoad: Pair<Int, Int>? = null
+    /** Android hands focus to the first card before the rows exist; start on a favourite instead. */
+    private var firstLoad = true
 
     private val ticker = object : Runnable {
         override fun run() {
@@ -129,6 +140,29 @@ class MainActivity : Activity() {
             setOnClickListener { Customize(this@MainActivity).show() }
             onFocusChangeListener = cardFocus
         }
+        homeButton = findViewById<View>(R.id.home_button).apply {
+            setOnClickListener { openIntent(AppRepository.googleHomeIntent()) }
+            onFocusChangeListener = View.OnFocusChangeListener { v, has ->
+                zoom(v, has, 1.12f)
+                applyPlatterColors(v, has)
+            }
+        }
+
+        npCard = findViewById(R.id.np_card)
+        npArt = findViewById<ImageView>(R.id.np_art).apply { clipToOutline = true }
+        npTitle = findViewById(R.id.np_title)
+        npArtist = findViewById(R.id.np_artist)
+        npState = findViewById(R.id.np_state)
+        nowPlaying = NowPlaying(this, ::showTrack)
+        npCard.apply {
+            setOnClickListener { nowPlaying.playPause() }
+            setOnLongClickListener { nowPlaying.openIntent()?.let(::openIntent); true }
+            onFocusChangeListener = cardFocus
+        }
+
+        // ScrollView makes itself focusable in its constructor (XML can't undo it); if it keeps
+        // focus, "nothing focused → first favourite" never kicks in.
+        findViewById<View>(R.id.root_scroll).isFocusable = false
 
         thread { Wallpapers.ensureFolders(applicationContext) }
         applyWallpaper(animate = false)
@@ -153,6 +187,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         resumed = true
+        if (LauncherSettings.showNowPlaying(this)) nowPlaying.start()
         ui.post(ticker)
         updateFtp()
         maybeOfferInstall()
@@ -170,6 +205,7 @@ class MainActivity : Activity() {
         super.onPause()
         resumed = false
         ui.removeCallbacks(ticker)
+        nowPlaying.stop()
     }
 
     override fun onDestroy() {
@@ -199,22 +235,37 @@ class MainActivity : Activity() {
     // ---------------------------------------------------------------- rows
 
     fun loadRows() {
+        val showApps = LauncherSettings.showAllApps(this)
         thread {
+            val showHome = LauncherSettings.showGoogleHome(this) &&
+                AppRepository.googleHomeIntent().resolveActivity(packageManager) != null
             val favs = AppRepository.favourites(this)
             val inputs = AppRepository.inputs(this)
-            val apps = AppRepository.allApps(this)
+            // Hidden row: skip loading every banner, saves RAM on the TV.
+            val apps = if (showApps) AppRepository.allApps(this) else emptyList()
             ui.post {
                 fillRow(R.id.row_favourites, favs)
                 fillRow(R.id.row_inputs, inputs)
                 fillRow(R.id.row_apps, apps)
+                val vis = if (showApps) View.VISIBLE else View.GONE
+                findViewById<View>(R.id.apps_title).visibility = vis
+                findViewById<View>(R.id.apps_scroll).visibility = vis
+                // Without All Apps, share the free space above and below the two rows.
+                for (id in intArrayOf(R.id.rows_space_top, R.id.rows_space_bottom)) {
+                    val space = findViewById<View>(id)
+                    (space.layoutParams as LinearLayout.LayoutParams).weight = if (showApps) 0f else 1f
+                    space.requestLayout()
+                }
+                homeButton.visibility = if (showHome) View.VISIBLE else View.GONE
                 focusAfterLoad?.let { (rowId, index) ->
                     val row = findViewById<LinearLayout>(rowId)
                     row.getChildAt(index.coerceIn(0, maxOf(0, row.childCount - 1)))?.requestFocus()
                 }
                 focusAfterLoad = null
-                if (currentFocus == null) {
+                if (currentFocus == null || firstLoad) {
                     findViewById<LinearLayout>(R.id.row_favourites).getChildAt(0)?.requestFocus()
                 }
+                firstLoad = false
             }
         }
     }
@@ -258,7 +309,11 @@ class MainActivity : Activity() {
                 label.visibility = if (has && tile.banner != null) View.VISIBLE else View.INVISIBLE
             }
             v.setOnClickListener {
-                if (tile.isAddFavourites) Customize(this).editFavourites() else tile.intent?.let(::openIntent)
+                when {
+                    tile.isAddFavourites -> Customize(this).editFavourites()
+                    tile.opensOptions -> Customize(this).show()
+                    else -> tile.intent?.let(::openIntent)
+                }
             }
             v.setOnLongClickListener { showTileOptions(tile, rowId, row.indexOfChild(v)); true }
             row.addView(v)
@@ -385,7 +440,7 @@ class MainActivity : Activity() {
                 val rest = v.getTag(R.id.rest_color) as Int
                 // Status colours (blue %, green "On") stay; everything else turns dark on white.
                 val keepsColour = v.id == R.id.ram_percent || (v.id == R.id.ftp_status && FtpService.running)
-                val dark = if (v.id == R.id.ftp_line1 || v.id == R.id.ram_detail) 0xFF636366.toInt() else 0xFF1C1C1E.toInt()
+                val dark = if (v.id == R.id.ftp_line1 || v.id == R.id.ram_detail || v.id == R.id.np_artist) 0xFF636366.toInt() else 0xFF1C1C1E.toInt()
                 v.setTextColor(if (focused && !keepsColour) dark else rest)
                 // Drop text shadows on the white platter, restore them afterwards.
                 if (v.getTag(R.id.rest_shadow) == null) v.setTag(R.id.rest_shadow, intArrayOf(v.shadowRadius.toBits(), v.shadowColor))
@@ -393,7 +448,7 @@ class MainActivity : Activity() {
                 if (focused) v.setShadowLayer(0f, 0f, 0f, 0)
                 else v.setShadowLayer(Float.fromBits(shadow[0]), 0f, 0f, shadow[1])
             }
-            is ImageView -> v.imageTintList =
+            is ImageView -> if (v.id != R.id.np_art) v.imageTintList =
                 if (focused) ColorStateList.valueOf(0xFF1C1C1E.toInt()) else null
             is ViewGroup -> for (i in 0 until v.childCount) applyPlatterColors(v.getChildAt(i), focused)
         }
@@ -448,7 +503,8 @@ class MainActivity : Activity() {
         ramBar.setProgress(r.usedPercent, true)
         ramPercent.text = "${r.usedPercent}%"
         if (System.currentTimeMillis() > ramMessageUntil) {
-            ramDetail.text = "${RamCleaner.format(r.availBytes)} available · Select to clean"
+            ramDetail.text = if (compact) "${RamCleaner.format(r.availBytes)} free"
+            else "${RamCleaner.format(r.availBytes)} available · Select to clean"
         }
     }
 
@@ -497,6 +553,8 @@ class MainActivity : Activity() {
         ftpStatus.setTag(R.id.rest_color, pillColor)
 
         ftpLine1.text = when {
+            compact && on -> "${FtpService.ipAddress() ?: "No network"}:${FtpService.PORT}"
+            compact -> "Select to turn on"
             on -> "${FtpService.ipAddress() ?: "No network"}:${FtpService.PORT}  ·  " +
                 "${FtpService.USER} / ${FtpService.password(this)}"
             FtpService.lastError != null -> "${FtpService.lastError} · Select to retry"
@@ -579,6 +637,51 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Not now", null)
             .show()
+    }
+
+    // ---------------------------------------------------------------- now playing
+
+    private fun showTrack(t: Track?) {
+        val show = t != null && LauncherSettings.showNowPlaying(this)
+        if (show && t != null) {
+            npTitle.text = t.title
+            npArtist.text = t.artist
+            if (t.art != null) npArt.setImageBitmap(t.art)
+            else npArt.setImageDrawable(runCatching { packageManager.getApplicationIcon(t.packageName) }.getOrNull())
+            npState.setImageResource(if (t.playing) R.drawable.ic_pause else R.drawable.ic_play)
+        }
+        if (npCard.isFocused) applyPlatterColors(npCard, true)
+        if (show == compact) return
+        // Move focus off a card that's about to disappear.
+        if (!show && npCard.isFocused) findViewById<View>(R.id.ftp_card).requestFocus()
+        npCard.visibility = if (show) View.VISIBLE else View.GONE
+        setCompact(show)
+    }
+
+    /** Narrower File Transfer and Memory cards with shorter text, so the header fits one more card. */
+    private fun setCompact(on: Boolean) {
+        compact = on
+        val d = resources.displayMetrics.density
+        fun size(v: View, widthDp: Int, padDp: Int, endMarginDp: Int) {
+            val lp = v.layoutParams as LinearLayout.LayoutParams
+            lp.width = (widthDp * d).toInt()
+            lp.marginEnd = (endMarginDp * d).toInt()
+            v.layoutParams = lp
+            v.setPaddingRelative((padDp * d).toInt(), v.paddingTop, (padDp * d).toInt(), v.paddingBottom)
+        }
+        size(findViewById(R.id.ftp_card), if (on) 150 else 268, if (on) 12 else 16, if (on) 12 else 14)
+        size(findViewById(R.id.ram_card), if (on) 128 else 212, if (on) 12 else 16, if (on) 14 else 0)
+        findViewById<TextView>(R.id.ftp_title).text = if (on) "Transfer" else "File Transfer"
+        findViewById<View>(R.id.header_space).visibility = if (on) View.GONE else View.VISIBLE
+        weatherLine.maxWidth = ((if (on) 150 else 170) * d).toInt()
+        updateFtp()
+        updateRam()
+    }
+
+    /** Called by Customize when "Show what's playing" changes. */
+    fun onNowPlayingSettingChanged() {
+        nowPlaying.stop()
+        if (LauncherSettings.showNowPlaying(this)) nowPlaying.start() else showTrack(null)
     }
 
     // ---------------------------------------------------------------- weather

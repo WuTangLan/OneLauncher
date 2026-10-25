@@ -84,6 +84,7 @@ class WallpaperPicker(private val activity: MainActivity) {
             }
             row.addView(item)
         }
+        row.addView(getMoreItem(inflater, row, dialog))
 
         activity.pickerOpen = true
         dialog.setOnDismissListener {
@@ -95,6 +96,36 @@ class WallpaperPicker(private val activity: MainActivity) {
         }
         dialog.show()
         (toFocus ?: row.getChildAt(0))?.requestFocus()
+    }
+
+    /** Last thumbnail: opens the download gallery. */
+    private fun getMoreItem(inflater: LayoutInflater, row: ViewGroup, dialog: Dialog): View {
+        val item = inflater.inflate(R.layout.wallpaper_item, row, false)
+        val card = item.findViewById<View>(R.id.wp_card)
+        val label = item.findViewById<TextView>(R.id.wp_label)
+        card.clipToOutline = true
+        card.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(0xFF262A36.toInt())
+            cornerRadius = 14 * activity.resources.displayMetrics.density
+        }
+        item.findViewById<ImageView>(R.id.wp_image).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            val pad = (32 * activity.resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+            setImageResource(R.drawable.ic_download)
+        }
+        label.text = "Get more"
+        item.setOnFocusChangeListener { _, has ->
+            val s = if (has) 1.1f else 1f
+            card.animate().scaleX(s).scaleY(s).setDuration(140).setInterpolator(DecelerateInterpolator()).start()
+            card.elevation = if (has) 16f else 0f
+            label.setTextColor(if (has) Color.WHITE else 0xB3FFFFFF.toInt())
+        }
+        item.setOnClickListener {
+            dialog.dismiss()
+            WallpaperGallery(activity).show()
+        }
+        return item
     }
 
     /** Waits a moment so scrolling quickly past photos doesn't decode every one. */

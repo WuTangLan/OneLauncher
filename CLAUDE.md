@@ -29,12 +29,11 @@ adb shell am start -n com.marcus.onelauncher/.MainActivity
 adb logcat -s AndroidRuntime:E    # crashes
 ```
 
-**JDK:** Gradle 8.10.2 runs on Java 17–23 only. The user's Android Studio defaults to JDK 25,
-which fails ("Incompatible Gradle JVM version"). For terminal builds set `JAVA_HOME` to Android
-Studio's bundled JBR 21, e.g.
-- Windows: `C:\Program Files\Android\Android Studio\jbr`
-- macOS: `/Applications/Android Studio.app/Contents/jbr/Contents/Home`
-- Linux: `<android-studio>/jbr`
+**JDK:** Gradle 8.10.2 runs on Java 17–23 only. On the user's PC Android Studio's bundled
+`jbr` is **Java 25** and fails (the whole error is just "25.0.3"). Use the JBR 21 that Studio
+downloaded instead: `JAVA_HOME=~/.jdks/jbr-21.0.11` (Windows: `C:\Users\arcus\.jdks\jbr-21.0.11`).
+`adb` is in `platform-tools/` at the repo root; the TV is usually `192.168.100.86:5555`.
+The debug build was first built and installed on the TV on 2026-10-25 and runs.
 
 Optional upgrade (do it only after the current setup builds): AGP 9.x + Gradle ≥ 9.1 runs on
 Java 25. AGP 9 has built-in Kotlin support, so remove the `org.jetbrains.kotlin.android` plugin
@@ -75,14 +74,18 @@ CI: `.github/workflows/build.yml` builds a release APK (signed with the debug ke
 | `MainActivity.kt` | The home screen: rows, focus/zoom, glass-card focus colours, clock, RAM widget, FTP card, wallpaper layers + crossfade, weather display, hold-OK menus (favourites, rename input), APK/wallpaper offers after FTP upload |
 | `Apps.kt` | `Tile` model, default `FAVOURITES`, `AppRepository` (favourites, all apps, HDMI inputs via `TvInputManager`, icon-tint colour) |
 | `Favourites.kt` | `Favourites` (ordered package list in prefs) and `InputLabels` (custom input names, quick suggestions, name → icon) |
-| `Customize.kt` | Customize menu (AlertDialogs): wallpaper, rotation, edit favourites, rename inputs, weather on/off, city search, °C/°F, TV settings |
+| `Customize.kt` | `LauncherSettings` (show All Apps / Google Home) and the Launcher options menu (AlertDialogs): wallpaper, rotation, row toggles, edit favourites, rename inputs, weather on/off, city search, °C/°F, TV settings |
 | `Wallpapers.kt` | Presets + user images from `Wallpapers` folders, rotation, sampled decoding, preset miniatures |
-| `WallpaperPicker.kt` | Bottom-sheet `Dialog` with thumbnails; focus = live preview, Back = revert |
+| `WallpaperPicker.kt` | Bottom-sheet `Dialog` with thumbnails; focus = live preview, Back = revert; last item "Get more" opens the gallery |
+| `OnlineWallpapers.kt` | Downloadable wallpapers: Bing daily (HPImageArchive JSON, last 8) + 55 curated Picsum IDs at 1920×1080, thumbnails (RGB_565), safe download via `.part` file |
+| `WallpaperGallery.kt` | "Get more wallpapers" sheet (reuses `wallpaper_picker.xml`): rest 600 ms = download to `cache/wallpaper_previews` + live preview, OK = save to Wallpapers folder + use, credit in the hint line, cache wiped on close |
 | `Weather.kt` | Open-Meteo forecast + geocoding, IP location (ipwho.is → geojs.io fallback), cache, WMO code → text/icon |
 | `FtpServer.java` | Dependency-free passive-mode FTP server (plain Java, unit-testable on any JVM) |
 | `FtpService.kt` | Foreground service wrapping it: password, LAN IP, root folder, 1 h idle stop, upload hooks |
 | `ApkInstaller.kt` | `PackageInstaller` session install for APKs received over FTP |
 | `RamCleaner.kt` | Memory info + `killBackgroundProcesses` sweep |
+| `NowPlaying.kt` | `MediaListener` (empty `NotificationListenerService`, needed for `MediaSessionManager.getActiveSessions`) + `NowPlaying` (watches sessions, picks the playing/paused one, play/pause, open app) |
+| `RowScrollView.kt` | `HorizontalScrollView` that keeps 24 dp around the focused tile, so scrolling back left re-aligns the row under its title |
 
 Layouts: `activity_main.xml` (wallpaper layers + scroll content), `tile.xml`,
 `wallpaper_picker.xml`, `wallpaper_item.xml`. Styles in `values/styles.xml`.
@@ -91,7 +94,7 @@ Layouts: `activity_main.xml` (wallpaper layers + scroll content), `tile.xml`,
 
 | File | Keys |
 |---|---|
-| `launcher` | `wallpaper` (`preset:<name>` or `file:<path>`), `rotate_minutes`, `rotated_at`, `favourites` (newline-separated packages; absent = defaults) |
+| `launcher` | `wallpaper` (`preset:<name>` or `file:<path>`), `rotate_minutes`, `rotated_at`, `favourites` (newline-separated packages; absent = defaults), `show_all_apps`, `show_google_home`, `show_now_playing` (default true) |
 | `input_labels` | `<TvInputInfo.id>` → custom name |
 | `weather` | `enabled`, `fahrenheit`, `manual`, `place`, `lat`, `lon`, `located_at`, `cache` (JSON), `cache_at`, `failed_at` |
 | `ftp` | `pass` |
@@ -104,7 +107,7 @@ Layouts: `activity_main.xml` (wallpaper layers + scroll content), `tile.xml`,
    Philips-specific fallback (e.g. the TV's own source/input-picker activity via
    `adb shell dumpsys package` / `cmd package query-activities`).
 3. Hold OK on an input → rename → name + icon update and survive a reboot.
-4. Hold OK on apps → add/move/remove favourites; Customize → Edit favourites.
+4. Hold OK on apps → add/move/remove favourites; Launcher options → Edit favourites.
 5. Memory card cleans and the number changes.
 6. File Transfer: on → FileZilla connects (passive) → upload an APK (install prompt) and a
    photo into `/Wallpapers` ("use as wallpaper" prompt). Foreground service type `specialUse`
@@ -112,6 +115,35 @@ Layouts: `activity_main.xml` (wallpaper layers + scroll content), `tile.xml`,
 7. Wallpaper picker: live preview while moving, Back reverts, OK keeps; rotation setting works.
 8. Weather appears within a few seconds online; city search works with the on-screen keyboard.
 9. Home key returns to the launcher once the stock launcher is disabled (README §3).
+
+## Google Home (verified on the TV, 2026-10-25)
+
+The TV has **no AppWidget providers** and `SmartHomeStateContentProvider` isn't readable, so a
+live device widget isn't possible. The Home panel is
+`com.google.android.apps.tv.dreamx/…smarthome.core.SmartHomeMainActivity`, exported with no
+permission, opened by action `com.google.android.libraries.tv.smarthome.intent.action.OPEN_SMART_HOME`
+(`AppRepository.googleHomeIntent()`). It's in `dreamx`, not `launcherx`, so it survives disabling
+the stock launcher. It's the round `home_button` (`round_bg.xml`) left of the clock card,
+shown only if the intent resolves and `show_google_home` is on.
+
+## Layout notes
+
+- Rows: the zoom room (top/start padding) is on the `Row` style with `clipToPadding=false`,
+  **not** on the `HorizontalScrollView`. A parent with `clipChildren=true` clips each child to the
+  child's own bounds, so padding on the scroll view cut the top off zoomed tiles. Same in
+  `wallpaper_picker.xml`.
+- Now playing: `np_card` (weight 1) appears only while a session plays/pauses; `setCompact()`
+  shrinks File Transfer to 150 dp and Memory to 128 dp with short texts, hides `header_space`,
+  and narrows the weather line. Needs notification-listener access (README).
+- `rows_space_top/bottom` get weight 1 only while All Apps is hidden, centring the two rows.
+- `root_scroll` is made non-focusable in code (ScrollView forces focusable in its constructor),
+  and the first `loadRows()` always focuses the first favourite.
+
+## TV state (2026-10-25)
+
+`launcherx` and `setupwraith` were disabled with `pm disable-user` and One Launcher set with
+`cmd package set-home-activity`, so Home opens it and the stock launcher no longer runs. Undo:
+README §3.
 
 ## Ideas not done yet
 

@@ -56,6 +56,53 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
+                <!-- Now playing (Spotify etc.): OK = play/pause, hold OK = open the app.
+                     Shown only while something plays; the other cards shrink to make room. -->
+                <LinearLayout
+                    android:id="@+id/np_card"
+                    style="@style/Card"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="14dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/np_art"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/tile_bg"
+                        android:scaleType="centerCrop" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/np_title"
+                            style="@style/CardTitle"
+                            android:layout_width="match_parent"
+                            android:layout_weight="0"
+                            android:ellipsize="end"
+                            android:maxLines="1" />
+
+                        <TextView android:id="@+id/np_artist" style="@style/CardLine" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/np_state"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/ic_pause" />
+                </LinearLayout>
+
                 <!-- File transfer: OK = on/off, hold OK = new password -->
                 <LinearLayout
                     android:id="@+id/ftp_card"
@@ -76,7 +123,7 @@
                             android:layout_marginEnd="6dp"
                             android:src="@drawable/ic_ftp" />
 
-                        <TextView style="@style/CardTitle" android:text="File Transfer" />
+                        <TextView android:id="@+id/ftp_title" style="@style/CardTitle" android:maxLines="1" android:text="File Transfer" />
 
                         <TextView
                             android:id="@+id/ftp_status"
@@ -132,11 +179,26 @@
                 </LinearLayout>
 
                 <Space
+                    android:id="@+id/header_space"
                     android:layout_width="0dp"
                     android:layout_height="1dp"
                     android:layout_weight="1" />
 
-                <!-- Weather + clock: select to open Customize -->
+                <!-- Google Home: OK opens the TV's Home panel -->
+                <ImageView
+                    android:id="@+id/home_button"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="14dp"
+                    android:background="@drawable/round_bg"
+                    android:clickable="true"
+                    android:contentDescription="Google Home"
+                    android:focusable="true"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_home"
+                    android:visibility="gone" />
+
+                <!-- Weather + clock: select to open Launcher options -->
                 <LinearLayout
                     android:id="@+id/clock_card"
                     android:layout_width="wrap_content"
@@ -212,20 +274,33 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Grows only when All Apps is hidden, so the two rows sit lower on the screen -->
+            <Space
+                android:id="@+id/rows_space_top"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
             <TextView style="@style/SectionTitle" android:layout_marginTop="16dp" android:text="Favourites" />
-            <HorizontalScrollView style="@style/RowScroll">
+            <com.marcus.onelauncher.RowScrollView style="@style/RowScroll">
                 <LinearLayout android:id="@+id/row_favourites" style="@style/Row" />
-            </HorizontalScrollView>
+            </com.marcus.onelauncher.RowScrollView>
 
             <TextView style="@style/SectionTitle" android:text="Inputs" />
-            <HorizontalScrollView style="@style/RowScroll">
+            <com.marcus.onelauncher.RowScrollView style="@style/RowScroll">
                 <LinearLayout android:id="@+id/row_inputs" style="@style/Row" />
-            </HorizontalScrollView>
+            </com.marcus.onelauncher.RowScrollView>
 
-            <TextView style="@style/SectionTitle" android:text="All Apps" />
-            <HorizontalScrollView style="@style/RowScroll">
+            <!-- Can be hidden in Launcher options -->
+            <TextView android:id="@+id/apps_title" style="@style/SectionTitle" android:text="All Apps" />
+            <com.marcus.onelauncher.RowScrollView android:id="@+id/apps_scroll" style="@style/RowScroll">
                 <LinearLayout android:id="@+id/row_apps" style="@style/Row" />
-            </HorizontalScrollView>
+            </com.marcus.onelauncher.RowScrollView>
+
+            <Space
+                android:id="@+id/rows_space_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

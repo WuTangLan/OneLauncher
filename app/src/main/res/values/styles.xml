@@ -55,16 +55,19 @@
         <item name="android:scrollbars">none</item>
         <item name="android:clipToPadding">false</item>
         <item name="android:overScrollMode">never</item>
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingTop">8dp</item>
         <item name="android:paddingEnd">48dp</item>
     </style>
 
+    <!-- The scroll view clips the row to the row's own bounds, so the row carries the room a
+         zoomed tile needs above it (padding the scroll view instead cut the tile's top off). -->
     <style name="Row">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:clipChildren">false</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingTop">8dp</item>
     </style>
 
     <!-- Glass widget card -->

@@ -5,13 +5,15 @@ A tiny, fast home screen for the TV remote, styled after Apple TV's home screen 
 - **Glass widgets** that turn into a white panel when selected
 - **File Transfer** — built-in FTP server: select to switch on, hold OK for a new password
 - **Memory** — live usage bar (turns orange above 80 %); select to clean RAM
-- **Weather + clock** top-right — current conditions, high/low and your city; select it to open **Customize**
+- **Now playing** — when Spotify (or any music app) plays, a card with cover, title and artist appears top-left; OK = play/pause, hold OK = open the app. The other cards shrink to make room
+- **Google Home** — round house button next to the clock; opens the TV's Home panel
+- **Weather + clock** top-right — current conditions, high/low and your city; select it to open **Launcher options**
 - **Wallpapers** — five built-in looks or your own photos, with optional automatic rotation
 - **Favourites** — starts with Stremio, SmartTube, HBO Max; add, remove and reorder any app (a "Get" badge opens the Play Store if one isn't installed)
-- **Inputs** — every HDMI port the TV reports, renamable any time (PC, STB, Xbox 360, Wii…) with a matching icon, plus Live TV and Settings
-- **All Apps** — everything installed, alphabetical
+- **Inputs** — every HDMI port the TV reports, renamable any time (PC, STB, Xbox 360, Wii…) with a matching icon, plus Live TV, **Launcher options** and Settings
+- **All Apps** — everything installed, alphabetical (can be hidden in Launcher options)
 - Tiles lift with a soft sheen when selected; the name appears underneath
-- Hold OK on an app = Favourites menu · hold OK on an input = rename · MENU = Customize · Home while home = back to the first tile
+- Hold OK on an app = Favourites menu · hold OK on an input = rename · MENU = Launcher options · Home while home = back to the first tile
 
 No libraries, plain Android framework, a few hundred KB.
 
@@ -93,13 +95,13 @@ adb shell appops set com.marcus.onelauncher REQUEST_INSTALL_PACKAGES allow
 
 - **Add:** hold OK on any app in *All Apps* → **Add to Favourites**.
 - **Remove / reorder:** hold OK on a favourite → **Move left**, **Move right** or **Remove from Favourites**.
-- **Many at once:** Customize → **Edit favourites** gives a tick-list of every app.
+- **Many at once:** Launcher options → **Edit favourites** gives a tick-list of every app.
 
 If you remove them all, the row shows an **Add favourites** tile.
 
 ## 6. Input names
 
-Hold OK on an HDMI tile (or Customize → **Rename inputs**) and pick a quick name — PC, STB,
+Hold OK on an HDMI tile (or Launcher options → **Rename inputs**) and pick a quick name — PC, STB,
 Xbox 360, Xbox Series X, PlayStation 5/4, Wii, Nintendo Switch, Apple TV, Chromecast, Fire TV,
 Blu-ray, Soundbar, Laptop, Camera — or **Type a name…** for anything else. Rename again any time;
 **Reset** brings back the TV's own name.
@@ -109,8 +111,15 @@ streaming boxes a set-top box; anything else keeps the HDMI plug.
 
 ## 7. Wallpapers
 
-Select the **weather/clock** block (or press MENU) → **Customize → Wallpaper**. Moving across the
+Select the **weather/clock** block (or press MENU) → **Launcher options → Wallpaper**. Moving across the
 thumbnails previews each wallpaper live behind the menu; OK keeps it, Back puts the old one back.
+
+**Download more:** select **Get more** at the end of the wallpaper row (or Launcher options →
+*Get more wallpapers*). You get Bing's photo of the day for the last 8 days plus 55 hand-picked
+landscapes (Unsplash photos via Lorem Picsum). Rest on one for a second and it previews full-screen
+with the photographer's credit; OK downloads it into the Wallpapers folder and uses it; Back
+leaves everything as it was. Downloaded ones have a tick and join the normal picker and rotation.
+To remove one, delete it from the Wallpapers folder over File Transfer.
 
 **Your own photos (JPG, PNG or WebP):**
 1. Turn on **File Transfer** and connect with FileZilla.
@@ -123,15 +132,15 @@ they don't eat memory. Photo wallpapers get a gentle dark overlay so the text st
 **From a USB stick:** put a folder called `Wallpapers` at the top of the stick. This needs the
 all-files access command from the File Transfer section (Android blocks USB access otherwise).
 
-**Change automatically:** Customize → *Change wallpaper automatically* → every hour, 6 hours or
-day. It cycles through your own photos (or the built-in looks if you haven't added any).
+**Change automatically:** Launcher options → *Change wallpaper automatically* → every hour, 6 hours or
+day. It cycles through your own and downloaded photos (or the built-in looks if there are none).
 
 ## 8. Weather
 
 Shown beside the clock: icon, temperature, today's high/low, condition and city. It updates
 every 30 minutes and keeps showing the last reading for up to 6 hours if the internet drops.
 
-In **Customize** you can:
+In **Launcher options** you can:
 - **Weather location:** *Automatic* works out your city from the TV's internet connection;
   *Choose a city…* lets you type one (the remote's keyboard or voice typing both work).
 - **Temperature:** switch °C / °F.
@@ -139,6 +148,24 @@ In **Customize** you can:
 
 Data comes from [Open-Meteo](https://open-meteo.com) (free, no account). Automatic location
 uses ipwho.is (falling back to geojs.io), which see only the TV's public IP address.
+
+## Launcher options and Google Home
+
+Open **Launcher options** from its tile at the end of the Inputs row, by selecting the
+weather/clock block, or with the MENU key. Besides wallpaper, favourites, input names and
+weather, it has:
+- **Show All Apps:** turn off to hide the All Apps row; Favourites and Inputs then move down to
+  the middle of the screen (your favourites stay; add more with *Edit favourites*).
+- **Show Google Home:** the round **house button** next to the clock opens Google TV's own Home panel (lights,
+  cameras, thermostats set up in the Google Home app on your phone). It keeps working with the
+  stock launcher disabled. Google doesn't let other apps show live device controls, so it's a
+  shortcut to the panel rather than a live widget.
+
+**Show what's playing** needs notification access (Android's rule for reading other apps'
+media). Google TV usually hides that setting, so run this once from a computer:
+```
+adb shell cmd notification allow_listener com.marcus.onelauncher/.MediaListener
+```
 
 ## Customising
 
